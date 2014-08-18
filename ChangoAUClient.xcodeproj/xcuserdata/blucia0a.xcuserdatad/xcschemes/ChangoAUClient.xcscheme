@@ -57,6 +57,16 @@
             ReferencedContainer = "container:ChangoAUClient.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
+      <CommandLineArguments>
+         <CommandLineArgument
+            argument = "/Users/blucia/cvsandbox/ChangoAUClient/VIDEOPIPE.png"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "/Users/blucia/cvsandbox/ChangoAUClient/CHANGOLOCK"
+            isEnabled = "YES">
+         </CommandLineArgument>
+      </CommandLineArguments>
       <AdditionalOptions>
       </AdditionalOptions>
    </LaunchAction>
