@@ -10,12 +10,14 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <fcntl.h>
+#include <signal.h>
 
 #include <fstream>
 #include <sstream>
 #include <iomanip>
 #include <opencv2/opencv.hpp>
 #include <opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>
 #include "pixelator.h"
 
 #define WINDOW_NAME_STR "Chango Audio Unit Capture Window - Brandon Lucia 2014"
@@ -29,6 +31,7 @@ float shamps[25];
 
 void *writerThread(void*data){
     
+    
     float myamps[25];
     while(true){
         
@@ -36,17 +39,24 @@ void *writerThread(void*data){
         for(int i = 0; i < 25; i++){ myamps[i] = shamps[i]; }
         pthread_mutex_unlock(&schlock);
         write(datafd, myamps, 25 * sizeof(float));
-        std::cerr << "Writer got: ";
+       /* std::cerr << "Writer got: ";
         for(int i = 0; i < 25; i++){ std::cerr << myamps[i] << ":"; }
         std::cerr << "\n";
-        
+        */
         
     }
     return NULL;
 }
+void pipehandler(int sig){
+    
+    
+    
+}
 
 int main(int argc, const char * argv[])
 {
+   
+    signal(SIGPIPE,SIG_IGN);
     
     pthread_mutex_init(&schlock,NULL);
     messageBuffer = std::string("1.0000:1.0000:1.0000:1.0000:1.0000:1.0000:1.0000:1.0000:1.0000:1.0000:1.0000:1.0000:1.0000:1.0000:1.0000:1.0000:1.0000:1.0000:1.0000:1.0000:1.0000:1.0000:1.0000:1.0000:1.0000:");
@@ -59,7 +69,7 @@ int main(int argc, const char * argv[])
     /*The AU Plugin needs to know about these three strings.  
       Could be through the environment, too...*/
     const char *dataFIFO = "/Users/blucia/CHANGO_DATA_FIFO";
-    mkfifo(dataFIFO, 0644);
+    //mkfifo(dataFIFO, 0644);
     
     fprintf(stderr,"Opening data\n");
     datafd = open(dataFIFO,O_WRONLY);
@@ -74,20 +84,26 @@ int main(int argc, const char * argv[])
     pthread_create(&thd,NULL,writerThread,NULL);
     while(true){
 
-        Mat frame;
+        Mat frame, grayframe, grayframe2, mixedframe;
         camera.read(frame);
-        IplImage f2 = frame;
+        cv::cvtColor(frame,grayframe,COLOR_BGR2GRAY);
+        grayframe2 = grayframe.clone();
+        
+        IplImage f2 = grayframe;
+        
+        
         pixelate(&f2,amps);
        
-        std::cerr << "Camera got: ";
+       /* std::cerr << "Camera got: ";
         for(int i = 0; i < 25; i++){ std::cerr << amps[i] << ":"; }
         std::cerr << "\n";
-        
+        */
         pthread_mutex_lock(&schlock);
         for(int i = 0; i < 25; i++){ shamps[i] = amps[i]; };
         pthread_mutex_unlock(&schlock);
         
-        imshow(WINDOW_NAME_STR,frame);
+        cv::addWeighted(grayframe, 0.5, grayframe2, 0.5, 1.0, mixedframe);
+        imshow(WINDOW_NAME_STR,mixedframe);
         usleep(2000);//50 frames / s if frames are free (they're not, so ~30 FPS)
         
     }

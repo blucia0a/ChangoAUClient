@@ -48,7 +48,7 @@ void pixelate(IplImage *gimg, float *vals)
 	  vals[i] = favgIntensity[i] / 256.f;
 	  if(vals[i] < 0.0f){ vals[i] = 0.0f;}
 	  if(vals[i] > 1.0f){ vals[i] = 1.0f;}
-	  assert(vals[i] >= 0.0f && vals[i] <= 1.0f);
+	  //assert(vals[i] >= 0.0f && vals[i] <= 1.0f);
 	  
   } 
 
